@@ -9,11 +9,14 @@ from scrapy.responsetypes import responsetypes
 from scrapy.utils.project import data_path
 from scrapy.utils.request import request_fingerprint
 
+from scrapy_httpcache.extensions.cache_storage import CacheStorage
+
 logger = logging.getLogger(__name__)
 
 
-class DbmCacheStorage(object):
+class DbmCacheStorage(CacheStorage):
     def __init__(self, settings):
+        super(DbmCacheStorage, self).__init__(settings)
         self.cachedir = data_path(settings["HTTPCACHE_DIR"], createdir=True)
         self.expiration_secs = settings.getint("HTTPCACHE_EXPIRATION_SECS")
         self.dbmodule = import_module(settings["HTTPCACHE_DBM_MODULE"])

@@ -11,11 +11,14 @@ from scrapy.utils.python import to_bytes
 from scrapy.utils.request import request_fingerprint
 from w3lib.http import headers_dict_to_raw, headers_raw_to_dict
 
+from scrapy_httpcache.extensions.cache_storage import CacheStorage
+
 logger = logging.getLogger(__name__)
 
 
-class FilesystemCacheStorage(object):
+class FilesystemCacheStorage(CacheStorage):
     def __init__(self, settings):
+        super(FilesystemCacheStorage, self).__init__(settings)
         self.cachedir = data_path(settings["HTTPCACHE_DIR"])
         self.expiration_secs = settings.getint("HTTPCACHE_EXPIRATION_SECS")
         self.use_gzip = settings.getbool("HTTPCACHE_GZIP")
