@@ -1,7 +1,7 @@
 import logging
 from email.utils import mktime_tz, parsedate_tz
 from time import time
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 from weakref import WeakKeyDictionary
 
 from scrapy.http.response import Response
@@ -14,7 +14,7 @@ from scrapy_httpcache import TRequest, TResponse
 logger = logging.getLogger(__name__)
 
 
-def parse_cachecontrol(header: bytes):
+def parse_cachecontrol(header: bytes) -> Dict[bytes, Optional[bytes]]:
     """Parse Cache-Control header
 
     https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
@@ -54,7 +54,9 @@ class RFC2616Policy(object):
         ]
         self._cc_parsed: WeakKeyDictionary = WeakKeyDictionary()
 
-    def _parse_cachecontrol(self, r: Union[TRequest, TResponse]):
+    def _parse_cachecontrol(
+        self, r: Union[TRequest, TResponse]
+    ) -> Dict[bytes, Optional[bytes]]:
         if r not in self._cc_parsed:
             cch = r.headers.get(b"Cache-Control", b"")
             parsed = parse_cachecontrol(cch)
@@ -159,7 +161,9 @@ class RFC2616Policy(object):
         # Use the cached response if the server says it hasn't changed.
         return response.status == 304
 
-    def _set_conditional_validators(self, request: TRequest, cachedresponse: TResponse):
+    def _set_conditional_validators(
+        self, request: TRequest, cachedresponse: TResponse
+    ) -> None:
         if b"Last-Modified" in cachedresponse.headers:
             request.headers[b"If-Modified-Since"] = cachedresponse.headers[
                 b"Last-Modified"
@@ -168,13 +172,15 @@ class RFC2616Policy(object):
         if b"ETag" in cachedresponse.headers:
             request.headers[b"If-None-Match"] = cachedresponse.headers[b"ETag"]
 
-    def _get_max_age(self, cc):
+    def _get_max_age(self, cc) -> Optional[int]:
         try:
             return max(0, int(cc[b"max-age"]))
         except (KeyError, ValueError):
             return None
 
-    def _compute_freshness_lifetime(self, response: TResponse, request: TRequest, now):
+    def _compute_freshness_lifetime(
+        self, response: TResponse, request: TRequest, now: float
+    ):
         # Reference nsHttpResponseHead::ComputeFreshnessLifetime
         # https://dxr.mozilla.org/mozilla-central/source/netwerk/protocol/http/nsHttpResponseHead.cpp#706
         cc = self._parse_cachecontrol(response)
