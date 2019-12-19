@@ -3,6 +3,7 @@ import os
 import pickle
 from importlib import import_module
 from time import time
+from typing import Optional
 
 from scrapy.http.headers import Headers
 from scrapy.responsetypes import responsetypes
@@ -24,7 +25,7 @@ class DbmCacheStorage(CacheStorage):
         self.dbmodule = import_module(settings["HTTPCACHE_DBM_MODULE"])
         self.db = None
 
-    def open_spider(self, spider: TSpider):
+    def open_spider(self, spider: TSpider) -> None:
         dbpath = os.path.join(self.cachedir, "%s.db" % spider.name)
         self.db = self.dbmodule.open(dbpath, "c")
 
@@ -33,10 +34,12 @@ class DbmCacheStorage(CacheStorage):
             extra={"spider": spider},
         )
 
-    def close_spider(self, spider: TSpider):
+    def close_spider(self, spider: TSpider) -> None:
         self.db.close()
 
-    def retrieve_response(self, spider: TSpider, request: TRequest):
+    def retrieve_response(
+        self, spider: TSpider, request: TRequest
+    ) -> Optional[TResponse]:
         data = self._read_data(spider, request)
         if data is None:
             return  # not cached
@@ -48,7 +51,9 @@ class DbmCacheStorage(CacheStorage):
         response = respcls(url=url, headers=headers, status=status, body=body)
         return response
 
-    def store_response(self, spider: TSpider, request: TRequest, response: TResponse):
+    def store_response(
+        self, spider: TSpider, request: TRequest, response: TResponse
+    ) -> None:
         key = self._request_key(request)
         data = {
             "status": response.status,

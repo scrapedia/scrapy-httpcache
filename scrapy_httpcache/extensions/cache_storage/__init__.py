@@ -2,6 +2,7 @@
 The metaclass of cache storage
 """
 from abc import ABCMeta, abstractmethod
+from typing import Optional
 
 from scrapy.settings import Settings
 
@@ -21,7 +22,7 @@ class CacheStorage(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def open_spider(self, spider: TSpider):
+    def open_spider(self, spider: TSpider) -> None:
         """
 
         :param spider:
@@ -29,7 +30,7 @@ class CacheStorage(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def close_spider(self, spider: TSpider):
+    def close_spider(self, spider: TSpider) -> None:
         """
 
         :param spider:
@@ -37,7 +38,9 @@ class CacheStorage(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def retrieve_response(self, spider: TSpider, request: TRequest):
+    def retrieve_response(
+        self, spider: TSpider, request: TRequest
+    ) -> Optional[TResponse]:
         """
 
         :param spider:
@@ -47,7 +50,7 @@ class CacheStorage(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def store_response(self, spider: TSpider, request: TRequest, response: TResponse):
+    def store_response(self, spider: TSpider, request: TRequest, response: TResponse) -> None:
         """
 
         :param spider:

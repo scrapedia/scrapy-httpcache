@@ -3,6 +3,7 @@ import logging
 import os
 import pickle
 from time import time
+from typing import Optional
 
 from scrapy.http.headers import Headers
 from scrapy.responsetypes import responsetypes
@@ -26,17 +27,19 @@ class FilesystemCacheStorage(CacheStorage):
         self.use_gzip = settings.getbool("HTTPCACHE_GZIP")
         self._open = gzip.open if self.use_gzip else open
 
-    def open_spider(self, spider: TSpider):
+    def open_spider(self, spider: TSpider) -> None:
         logger.debug(
             "Using filesystem cache storage in %(cachedir)s"
             % {"cachedir": self.cachedir},
             extra={"spider": spider},
         )
 
-    def close_spider(self, spider: TSpider):
+    def close_spider(self, spider: TSpider) -> None:
         pass
 
-    def retrieve_response(self, spider: TSpider, request: TRequest):
+    def retrieve_response(
+        self, spider: TSpider, request: TRequest
+    ) -> Optional[TResponse]:
         """Return response if present in cache, or None otherwise."""
         metadata = self._read_meta(spider, request)
         if metadata is None:
@@ -53,7 +56,9 @@ class FilesystemCacheStorage(CacheStorage):
         response = respcls(url=url, headers=headers, status=status, body=body)
         return response
 
-    def store_response(self, spider: TSpider, request: TRequest, response: TResponse):
+    def store_response(
+        self, spider: TSpider, request: TRequest, response: TResponse
+    ) -> None:
         """Store the given response in the cache."""
         rpath = self._get_request_path(spider, request)
         if not os.path.exists(rpath):
