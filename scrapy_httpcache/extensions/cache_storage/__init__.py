@@ -1,32 +1,52 @@
 from abc import ABCMeta, abstractmethod
 
+from scrapy.settings import Settings
+
+from scrapy_httpcache import TRequest, TResponse, TSpider
+
 
 class CacheStorage(metaclass=ABCMeta):
-    def __init__(self, settings):
+    def __init__(self, settings: Settings):
         """
 
-        """
-
-    @abstractmethod
-    def open_spider(self, spider):
-        """
-
+        :param settings:
+        :type settings: Settings
         """
 
     @abstractmethod
-    def close_spider(self, spider):
+    def open_spider(self, spider: TSpider):
         """
 
-        """
-
-    @abstractmethod
-    def retrieve_response(self, spider, request):
-        """
-
+        :param spider:
+        :type spider: TSpider
         """
 
     @abstractmethod
-    def store_response(self, spider, request, response):
+    def close_spider(self, spider: TSpider):
         """
 
+        :param spider:
+        :type spider: TSpider
+        """
+
+    @abstractmethod
+    def retrieve_response(self, spider: TSpider, request: TRequest):
+        """
+
+        :param spider:
+        :type spider: TSpider
+        :param request:
+        :type request: TRequest
+        """
+
+    @abstractmethod
+    def store_response(self, spider: TSpider, request: TRequest, response: TResponse):
+        """
+
+        :param spider:
+        :type spider: TSpider
+        :param request:
+        :type request: TRequest
+        :param response:
+        :type response: TResponse
         """
