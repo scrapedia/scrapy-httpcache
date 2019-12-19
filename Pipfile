@@ -32,3 +32,4 @@ tox = "*"
 
 [packages]
 Scrapy = "*"
+pymongo = "*"
