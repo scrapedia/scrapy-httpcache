@@ -27,12 +27,11 @@ from scrapy_httpcache import (
     TSpider,
     TStatsCollector,
 )
-from scrapy_httpcache.extensions.httpcache import (
+from scrapy_httpcache.extensions.cache_storage import (
     DbmCacheStorage,
-    DummyPolicy,
     FilesystemCacheStorage,
-    RFC2616Policy,
 )
+from scrapy_httpcache.extensions.policy import DummyPolicy, RFC2616Policy
 
 
 class HttpCacheMiddleware(object):
