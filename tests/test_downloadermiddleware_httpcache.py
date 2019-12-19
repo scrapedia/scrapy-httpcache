@@ -15,8 +15,8 @@ from scrapy_httpcache.downloadermiddlewares.httpcache import HttpCacheMiddleware
 
 class _BaseTest(unittest.TestCase):
 
-    storage_class = 'scrapy_httpcache.extensions.cache_storage.DbmCacheStorage'
-    policy_class = 'scrapy_httpcache.extensions.policy.RFC2616Policy'
+    storage_class = 'scrapy_httpcache.extensions.cache_storage.dbm_cache_storage.DbmCacheStorage'
+    policy_class = 'scrapy_httpcache.extensions.policy.rfc2616_policy.RFC2616Policy'
 
     def setUp(self):
         self.yesterday = email.utils.formatdate(time.time() - 86400)
@@ -125,7 +125,7 @@ class DefaultStorageTest(_BaseTest):
 
 class DbmStorageTest(DefaultStorageTest):
 
-    storage_class = 'scrapy_httpcache.extensions.cache_storage.DbmCacheStorage'
+    storage_class = 'scrapy_httpcache.extensions.cache_storage.dbm_cache_storage.DbmCacheStorage'
 
 
 class DbmStorageWithCustomDbmModuleTest(DbmStorageTest):
@@ -144,7 +144,7 @@ class DbmStorageWithCustomDbmModuleTest(DbmStorageTest):
 
 class FilesystemStorageTest(DefaultStorageTest):
 
-    storage_class = 'scrapy_httpcache.extensions.cache_storage.FilesystemCacheStorage'
+    storage_class = 'scrapy_httpcache.extensions.cache_storage.file_system_cache_storage.FilesystemCacheStorage'
 
 
 class FilesystemStorageGzipTest(FilesystemStorageTest):
@@ -156,7 +156,7 @@ class FilesystemStorageGzipTest(FilesystemStorageTest):
 
 class DummyPolicyTest(_BaseTest):
 
-    policy_class = 'scrapy_httpcache.extensions.policy.DummyPolicy'
+    policy_class = 'scrapy_httpcache.extensions.policy.dummy_policy.DummyPolicy'
 
     def test_middleware(self):
         with self._middleware() as mw:
@@ -248,7 +248,7 @@ class DummyPolicyTest(_BaseTest):
 
 class RFC2616PolicyTest(DefaultStorageTest):
 
-    policy_class = 'scrapy_httpcache.extensions.policy.RFC2616Policy'
+    policy_class = 'scrapy_httpcache.extensions.policy.rfc2616_policy.RFC2616Policy'
 
     def _process_requestresponse(self, mw, request, response):
         result = None
