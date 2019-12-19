@@ -3,7 +3,7 @@ import logging
 import os
 import pickle
 from time import time
-from typing import Optional
+from typing import Dict, Optional, Union
 
 from scrapy.http.headers import Headers
 from scrapy.responsetypes import responsetypes
@@ -83,11 +83,13 @@ class FilesystemCacheStorage(CacheStorage):
         with self._open(os.path.join(rpath, "request_body"), "wb") as f:
             f.write(request.body)
 
-    def _get_request_path(self, spider: TSpider, request: TRequest):
+    def _get_request_path(self, spider: TSpider, request: TRequest) -> str:
         key = request_fingerprint(request)
         return os.path.join(self.cachedir, spider.name, key[0:2], key)
 
-    def _read_meta(self, spider: TSpider, request: TRequest):
+    def _read_meta(
+        self, spider: TSpider, request: TRequest
+    ) -> Optional[Dict[str, Union[str, int, float]]]:
         rpath = self._get_request_path(spider, request)
         metapath = os.path.join(rpath, "pickled_meta")
         if not os.path.exists(metapath):
