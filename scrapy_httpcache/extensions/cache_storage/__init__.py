@@ -1,3 +1,6 @@
+"""
+The metaclass of cache storage
+"""
 from abc import ABCMeta, abstractmethod
 
 from scrapy.settings import Settings
@@ -6,6 +9,10 @@ from scrapy_httpcache import TRequest, TResponse, TSpider
 
 
 class CacheStorage(metaclass=ABCMeta):
+    """
+    The metaclass of cache storage
+    """
+
     def __init__(self, settings: Settings):
         """
 
