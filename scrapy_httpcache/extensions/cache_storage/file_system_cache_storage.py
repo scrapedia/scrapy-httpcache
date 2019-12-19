@@ -6,35 +6,37 @@ from time import time
 
 from scrapy.http.headers import Headers
 from scrapy.responsetypes import responsetypes
+from scrapy.settings import Settings
 from scrapy.utils.project import data_path
 from scrapy.utils.python import to_bytes
 from scrapy.utils.request import request_fingerprint
 from w3lib.http import headers_dict_to_raw, headers_raw_to_dict
 
+from scrapy_httpcache import TRequest, TResponse, TSpider
 from scrapy_httpcache.extensions.cache_storage import CacheStorage
 
 logger = logging.getLogger(__name__)
 
 
 class FilesystemCacheStorage(CacheStorage):
-    def __init__(self, settings):
+    def __init__(self, settings: Settings):
         super(FilesystemCacheStorage, self).__init__(settings)
         self.cachedir = data_path(settings["HTTPCACHE_DIR"])
         self.expiration_secs = settings.getint("HTTPCACHE_EXPIRATION_SECS")
         self.use_gzip = settings.getbool("HTTPCACHE_GZIP")
         self._open = gzip.open if self.use_gzip else open
 
-    def open_spider(self, spider):
+    def open_spider(self, spider: TSpider):
         logger.debug(
             "Using filesystem cache storage in %(cachedir)s"
             % {"cachedir": self.cachedir},
             extra={"spider": spider},
         )
 
-    def close_spider(self, spider):
+    def close_spider(self, spider: TSpider):
         pass
 
-    def retrieve_response(self, spider, request):
+    def retrieve_response(self, spider: TSpider, request: TRequest):
         """Return response if present in cache, or None otherwise."""
         metadata = self._read_meta(spider, request)
         if metadata is None:
@@ -51,7 +53,7 @@ class FilesystemCacheStorage(CacheStorage):
         response = respcls(url=url, headers=headers, status=status, body=body)
         return response
 
-    def store_response(self, spider, request, response):
+    def store_response(self, spider: TSpider, request: TRequest, response: TResponse):
         """Store the given response in the cache."""
         rpath = self._get_request_path(spider, request)
         if not os.path.exists(rpath):
@@ -76,11 +78,11 @@ class FilesystemCacheStorage(CacheStorage):
         with self._open(os.path.join(rpath, "request_body"), "wb") as f:
             f.write(request.body)
 
-    def _get_request_path(self, spider, request):
+    def _get_request_path(self, spider: TSpider, request: TRequest):
         key = request_fingerprint(request)
         return os.path.join(self.cachedir, spider.name, key[0:2], key)
 
-    def _read_meta(self, spider, request):
+    def _read_meta(self, spider: TSpider, request: TRequest):
         rpath = self._get_request_path(spider, request)
         metapath = os.path.join(rpath, "pickled_meta")
         if not os.path.exists(metapath):
