@@ -1,16 +1,20 @@
 import logging
 from email.utils import mktime_tz, parsedate_tz
 from time import time
+from typing import Dict, Union
 from weakref import WeakKeyDictionary
 
 from scrapy.http.response import Response
+from scrapy.settings import Settings
 from scrapy.utils.httpobj import urlparse_cached
 from scrapy.utils.python import to_bytes, to_unicode
+
+from scrapy_httpcache import TRequest, TResponse
 
 logger = logging.getLogger(__name__)
 
 
-def parse_cachecontrol(header):
+def parse_cachecontrol(header: bytes):
     """Parse Cache-Control header
 
     https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
@@ -41,16 +45,16 @@ def rfc1123_to_epoch(date_str):
 class RFC2616Policy(object):
     MAXAGE = 3600 * 24 * 365  # one year
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings):
         self.always_store = settings.getbool("HTTPCACHE_ALWAYS_STORE")
         self.ignore_schemes = settings.getlist("HTTPCACHE_IGNORE_SCHEMES")
         self.ignore_response_cache_controls = [
             to_bytes(cc)
             for cc in settings.getlist("HTTPCACHE_IGNORE_RESPONSE_CACHE_CONTROLS")
         ]
-        self._cc_parsed = WeakKeyDictionary()
+        self._cc_parsed: WeakKeyDictionary = WeakKeyDictionary()
 
-    def _parse_cachecontrol(self, r):
+    def _parse_cachecontrol(self, r: Union[TRequest, TResponse]):
         if r not in self._cc_parsed:
             cch = r.headers.get(b"Cache-Control", b"")
             parsed = parse_cachecontrol(cch)
@@ -60,7 +64,7 @@ class RFC2616Policy(object):
             self._cc_parsed[r] = parsed
         return self._cc_parsed[r]
 
-    def should_cache_request(self, request):
+    def should_cache_request(self, request: TRequest) -> bool:
         if urlparse_cached(request).scheme in self.ignore_schemes:
             return False
         cc = self._parse_cachecontrol(request)
@@ -70,7 +74,7 @@ class RFC2616Policy(object):
         # Any other is eligible for caching
         return True
 
-    def should_cache_response(self, response, request):
+    def should_cache_response(self, response: TResponse, request: TRequest) -> bool:
         # What is cacheable - https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.1
         # Response cacheability - https://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.4
         # Status code 206 is not included because cache can not deal with partial contents
@@ -99,7 +103,9 @@ class RFC2616Policy(object):
         else:
             return False
 
-    def is_cached_response_fresh(self, cachedresponse, request):
+    def is_cached_response_fresh(
+        self, cachedresponse: TResponse, request: TRequest
+    ) -> bool:
         cc = self._parse_cachecontrol(cachedresponse)
         ccreq = self._parse_cachecontrol(request)
         if b"no-cache" in cc or b"no-cache" in ccreq:
@@ -140,7 +146,9 @@ class RFC2616Policy(object):
         self._set_conditional_validators(request, cachedresponse)
         return False
 
-    def is_cached_response_valid(self, cachedresponse, response, request):
+    def is_cached_response_valid(
+        self, cachedresponse: TResponse, response: TResponse, request: TRequest
+    ) -> bool:
         # Use the cached response if the new response is a server error,
         # as long as the old response didn't specify must-revalidate.
         if response.status >= 500:
@@ -151,7 +159,7 @@ class RFC2616Policy(object):
         # Use the cached response if the server says it hasn't changed.
         return response.status == 304
 
-    def _set_conditional_validators(self, request, cachedresponse):
+    def _set_conditional_validators(self, request: TRequest, cachedresponse: TResponse):
         if b"Last-Modified" in cachedresponse.headers:
             request.headers[b"If-Modified-Since"] = cachedresponse.headers[
                 b"Last-Modified"
@@ -166,7 +174,7 @@ class RFC2616Policy(object):
         except (KeyError, ValueError):
             return None
 
-    def _compute_freshness_lifetime(self, response, request, now):
+    def _compute_freshness_lifetime(self, response: TResponse, request: TRequest, now):
         # Reference nsHttpResponseHead::ComputeFreshnessLifetime
         # https://dxr.mozilla.org/mozilla-central/source/netwerk/protocol/http/nsHttpResponseHead.cpp#706
         cc = self._parse_cachecontrol(response)
@@ -197,7 +205,7 @@ class RFC2616Policy(object):
         # Insufficient information to compute fresshness lifetime
         return 0
 
-    def _compute_current_age(self, response, request, now):
+    def _compute_current_age(self, response: TResponse, request: TRequest, now):
         # Reference nsHttpResponseHead::ComputeCurrentAge
         # https://dxr.mozilla.org/mozilla-central/source/netwerk/protocol/http/nsHttpResponseHead.cpp#658
         currentage = 0
