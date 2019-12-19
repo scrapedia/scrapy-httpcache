@@ -5,7 +5,7 @@ from abc import ABCMeta
 
 from scrapy.settings import Settings
 
-from scrapy_httpcache import TRequest
+from scrapy_httpcache import TRequest, TResponse
 
 
 class Policy(metaclass=ABCMeta):
@@ -27,7 +27,7 @@ class Policy(metaclass=ABCMeta):
         :type request: TRequest
         """
 
-    def should_cache_response(self, response, request):
+    def should_cache_response(self, response: TResponse, request: TRequest):
         """
 
         :param response:
@@ -36,7 +36,7 @@ class Policy(metaclass=ABCMeta):
         :type request: TRequest
         """
 
-    def is_cached_response_fresh(self, cachedresponse, request):
+    def is_cached_response_fresh(self, cachedresponse: TResponse, request: TRequest):
         """
 
         :param cachedresponse:
@@ -45,7 +45,9 @@ class Policy(metaclass=ABCMeta):
         :type request: TRequest
         """
 
-    def is_cached_response_valid(self, cachedresponse, response, request):
+    def is_cached_response_valid(
+        self, cachedresponse: TResponse, response: TResponse, request: TRequest
+    ):
         """
 
         :param cachedresponse:
