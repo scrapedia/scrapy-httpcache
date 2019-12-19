@@ -20,34 +20,42 @@ class Policy(metaclass=ABCMeta):
         :type settings: Settings
         """
 
-    def should_cache_request(self, request: TRequest):
+    def should_cache_request(self, request: TRequest) -> bool:
         """
 
         :param request:
         :type request: TRequest
+        :return:
+        :rtype: bool
         """
 
-    def should_cache_response(self, response: TResponse, request: TRequest):
+    def should_cache_response(self, response: TResponse, request: TRequest) -> bool:
         """
 
         :param response:
         :type response: TResponse
         :param request:
         :type request: TRequest
+        :return:
+        :rtype: bool
         """
 
-    def is_cached_response_fresh(self, cachedresponse: TResponse, request: TRequest):
+    def is_cached_response_fresh(
+        self, cachedresponse: TResponse, request: TRequest
+    ) -> bool:
         """
 
         :param cachedresponse:
         :type cachedresponse: TResponse
         :param request:
         :type request: TRequest
+        :return:
+        :rtype: bool
         """
 
     def is_cached_response_valid(
         self, cachedresponse: TResponse, response: TResponse, request: TRequest
-    ):
+    ) -> bool:
         """
 
         :param cachedresponse:
@@ -56,4 +64,6 @@ class Policy(metaclass=ABCMeta):
         :type response: TResponse
         :param request:
         :type request: TRequest
+        :return:
+        :rtype: bool
         """
