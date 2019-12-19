@@ -1,9 +1,11 @@
+import dbm
 import logging
 import os
 import pickle
+from dbm.dumb import _Database
 from importlib import import_module
 from time import time
-from typing import Optional
+from typing import Dict, Optional, Union
 
 from scrapy.http.headers import Headers
 from scrapy.responsetypes import responsetypes
@@ -22,8 +24,8 @@ class DbmCacheStorage(CacheStorage):
         super(DbmCacheStorage, self).__init__(settings)
         self.cachedir = data_path(settings["HTTPCACHE_DIR"], createdir=True)
         self.expiration_secs = settings.getint("HTTPCACHE_EXPIRATION_SECS")
-        self.dbmodule = import_module(settings["HTTPCACHE_DBM_MODULE"])
-        self.db = None
+        self.dbmodule: dbm = import_module(settings["HTTPCACHE_DBM_MODULE"])
+        self.db: _Database = None
 
     def open_spider(self, spider: TSpider) -> None:
         dbpath = os.path.join(self.cachedir, "%s.db" % spider.name)
@@ -64,7 +66,9 @@ class DbmCacheStorage(CacheStorage):
         self.db["%s_data" % key] = pickle.dumps(data, protocol=2)
         self.db["%s_time" % key] = str(time())
 
-    def _read_data(self, spider: TSpider, request: TRequest):
+    def _read_data(
+        self, spider: TSpider, request: TRequest
+    ) -> Optional[Dict[str, Union[int, str, bytes, Dict]]]:
         key = self._request_key(request)
         db = self.db
         tkey = "%s_time" % key
@@ -77,5 +81,5 @@ class DbmCacheStorage(CacheStorage):
 
         return pickle.loads(db["%s_data" % key])
 
-    def _request_key(self, request: TRequest):
+    def _request_key(self, request: TRequest) -> str:
         return request_fingerprint(request)
