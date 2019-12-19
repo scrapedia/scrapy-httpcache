@@ -50,7 +50,9 @@ class CacheStorage(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def store_response(self, spider: TSpider, request: TRequest, response: TResponse) -> None:
+    def store_response(
+        self, spider: TSpider, request: TRequest, response: TResponse
+    ) -> None:
         """
 
         :param spider:
