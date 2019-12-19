@@ -1,0 +1,2 @@
+from scrapy_httpcache.extensions.policy.dummy_policy import DummyPolicy
+from scrapy_httpcache.extensions.policy.rfc2616_policy import RFC2616Policy
