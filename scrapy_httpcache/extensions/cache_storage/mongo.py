@@ -13,6 +13,7 @@ from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo.mongo_client import MongoClient
 from scrapy.settings import Settings
+from scrapy.utils.request import request_fingerprint
 
 from scrapy_httpcache import TRequest, TResponse, TSpider
 from scrapy_httpcache.extensions.cache_storage import CacheStorage
@@ -97,6 +98,9 @@ class MongoCacheStorage(CacheStorage):
         :param response:
         :type response: TResponse
         """
+
+    def _request_key(self, request: TRequest) -> str:
+        return request_fingerprint(request)
 
 
 class MongoAsyncCacheStorage(CacheStorage):
