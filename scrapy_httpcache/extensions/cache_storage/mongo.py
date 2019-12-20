@@ -21,6 +21,10 @@ logger = logging.getLogger(__name__)
 pattern = re.compile("^HTTPCACHE_MONGO_MONGOCLIENT_(?P<kwargs>(?!KWARGS).*)$")
 
 
+def get_arguments(var):
+    return {str: {"name": var}, dict: var}[type(var)]
+
+
 class MongoCacheStorage(CacheStorage):
     """
     The sync mongo cache storage with pymongo
