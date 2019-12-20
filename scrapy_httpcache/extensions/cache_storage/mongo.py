@@ -4,11 +4,9 @@ The mongo cache storage
 import logging
 from typing import Optional
 
-from motor.motor_asyncio import (
-    AsyncIOMotorClient,
-    AsyncIOMotorCollection,
-    AsyncIOMotorDatabase,
-)
+from motor.core import AgnosticClient as AsyncIOMotorClient
+from motor.core import AgnosticCollection as AsyncIOMotorCollection
+from motor.core import AgnosticDatabase as AsyncIOMotorDatabase
 from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo.mongo_client import MongoClient
