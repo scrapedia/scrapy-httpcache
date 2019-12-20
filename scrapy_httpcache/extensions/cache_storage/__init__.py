@@ -20,6 +20,7 @@ class CacheStorage(metaclass=ABCMeta):
         :param settings:
         :type settings: Settings
         """
+        self.expiration_secs = settings.getint("HTTPCACHE_EXPIRATION_SECS")
 
     @abstractmethod
     def open_spider(self, spider: TSpider) -> None:

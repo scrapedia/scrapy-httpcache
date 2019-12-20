@@ -23,7 +23,6 @@ class DbmCacheStorage(CacheStorage):
     def __init__(self, settings: Settings):
         super(DbmCacheStorage, self).__init__(settings)
         self.cachedir = data_path(settings["HTTPCACHE_DIR"], createdir=True)
-        self.expiration_secs = settings.getint("HTTPCACHE_EXPIRATION_SECS")
         self.dbmodule: dbm = import_module(settings["HTTPCACHE_DBM_MODULE"])
         self.db: _Database = None
 
