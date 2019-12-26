@@ -10,7 +10,6 @@ from scrapy.responsetypes import responsetypes
 from scrapy.settings import Settings
 from scrapy.utils.project import data_path
 from scrapy.utils.python import to_bytes
-from scrapy.utils.request import request_fingerprint
 from w3lib.http import headers_dict_to_raw, headers_raw_to_dict
 
 from scrapy_httpcache import TRequest, TResponse, TSpider
@@ -83,7 +82,7 @@ class FilesystemCacheStorage(CacheStorage):
             f.write(request.body)
 
     def _get_request_path(self, spider: TSpider, request: TRequest) -> str:
-        key = request_fingerprint(request)
+        key = self._request_key(request)
         return os.path.join(self.cachedir, spider.name, key[0:2], key)
 
     def _read_meta(

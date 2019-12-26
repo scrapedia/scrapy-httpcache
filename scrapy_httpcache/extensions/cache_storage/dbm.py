@@ -11,7 +11,6 @@ from scrapy.http.headers import Headers
 from scrapy.responsetypes import responsetypes
 from scrapy.settings import Settings
 from scrapy.utils.project import data_path
-from scrapy.utils.request import request_fingerprint
 
 from scrapy_httpcache import TRequest, TResponse, TSpider
 from scrapy_httpcache.extensions.cache_storage import CacheStorage
@@ -79,6 +78,3 @@ class DbmCacheStorage(CacheStorage):
             return  # expired
 
         return pickle.loads(db["%s_data" % key])
-
-    def _request_key(self, request: TRequest) -> str:
-        return request_fingerprint(request)
