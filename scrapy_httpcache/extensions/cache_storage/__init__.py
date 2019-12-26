@@ -5,6 +5,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional
 
 from scrapy.settings import Settings
+from scrapy.utils.request import request_fingerprint
 
 from scrapy_httpcache import TRequest, TResponse, TSpider
 
@@ -63,3 +64,13 @@ class CacheStorage(metaclass=ABCMeta):
         :param response:
         :type response: TResponse
         """
+
+    def _request_key(self, request: TRequest) -> str:
+        """
+
+        :param request:
+        :type request: TRequest
+        :return:
+        :rtype: str
+        """
+        return request_fingerprint(request)
