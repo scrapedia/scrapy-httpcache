@@ -3,7 +3,9 @@ The mongo cache storage
 """
 import logging
 import re
-from typing import Optional
+from datetime import datetime
+from time import time
+from typing import Dict, Optional, Union
 
 from motor.core import AgnosticClient as AsyncIOMotorClient
 from motor.core import AgnosticCollection as AsyncIOMotorCollection
@@ -12,8 +14,9 @@ from pymongo import ASCENDING
 from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo.mongo_client import MongoClient
+from scrapy.http import Headers
+from scrapy.responsetypes import responsetypes
 from scrapy.settings import Settings
-from scrapy.utils.request import request_fingerprint
 
 from scrapy_httpcache import TRequest, TResponse, TSpider
 from scrapy_httpcache.extensions.cache_storage import CacheStorage
@@ -55,7 +58,6 @@ class MongoCacheStorage(CacheStorage):
         :return:
         :rtype: None
         """
-        # TODO: connect to the database
         self.client: MongoClient = MongoClient(**self.mongo_settings)
         self.db: Database = self.client.get_database(
             **get_arguments(self.settings["HTTPCACHE_MONGO_DATABASE"])
@@ -85,6 +87,16 @@ class MongoCacheStorage(CacheStorage):
         :param request:
         :type request: TRequest
         """
+        data = self._read_data(spider, request)
+        if data is None:
+            return  # not cached
+        url = data["url"]
+        status = data["status"]
+        headers = Headers(data["headers"])
+        body = data["body"]
+        respcls = responsetypes.from_args(headers=headers, url=url)
+        response = respcls(url=url, headers=headers, status=status, body=body)
+        return response
 
     def store_response(
         self, spider: TSpider, request: TRequest, response: TResponse
@@ -99,8 +111,33 @@ class MongoCacheStorage(CacheStorage):
         :type response: TResponse
         """
 
-    def _request_key(self, request: TRequest) -> str:
-        return request_fingerprint(request)
+        key = self._request_key(request)
+        data = {
+            "status": response.status,
+            "url": response.url,
+            "headers": response.headers.to_unicode_dict(),
+            "body": response.body,
+        }
+        self.collection.update_one(
+            {"key": key},
+            {"$set": {"key": key, "data": data, "time": datetime.utcnow(),}},
+            upsert=True,
+        )
+
+    def _read_data(
+        self, spider: TSpider, request: TRequest
+    ) -> Optional[Dict[str, Union[int, str, bytes, Dict]]]:
+        key = self._request_key(request)
+
+        v = self.collection.find_one({"key": key}, {"data": True, "time": True})
+
+        if not v:
+            return  # not found
+
+        if 0 < self.expiration_secs < time() - v["time"].timestamp():
+            return  # expired
+
+        return v["data"]
 
 
 class MongoAsyncCacheStorage(CacheStorage):
