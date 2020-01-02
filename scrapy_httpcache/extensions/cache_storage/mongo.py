@@ -110,17 +110,29 @@ class MongoCacheStorage(CacheStorage):
         :param response:
         :type response: TResponse
         """
-
-        key = self._request_key(request)
         data = {
             "status": response.status,
             "url": response.url,
             "headers": response.headers.to_unicode_dict(),
             "body": response.body,
         }
+        data_for_human = {
+            "status": response.status,
+            "url": response.url,
+            "headers": self._convert_headers(response),
+            "body": self._convert_body(response),
+        }
+        key = self._request_key(request)
         self.collection.update_one(
             {"key": key},
-            {"$set": {"key": key, "data": data, "time": datetime.utcnow(),}},
+            {
+                "$set": {
+                    "data": data,
+                    "data_for_human": data_for_human,
+                    "key": key,
+                    "time": datetime.utcnow(),
+                }
+            },
             upsert=True,
         )
 
@@ -138,6 +150,12 @@ class MongoCacheStorage(CacheStorage):
             return  # expired
 
         return v["data"]
+
+    def _convert_body(self, response: TResponse) -> Union[str, bytes]:
+        return response.body
+
+    def _convert_headers(self, response: TResponse):
+        return response.headers.to_unicode_dict()
 
 
 class MongoAsyncCacheStorage(CacheStorage):
