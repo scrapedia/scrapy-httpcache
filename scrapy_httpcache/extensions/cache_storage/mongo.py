@@ -14,9 +14,10 @@ from pymongo import ASCENDING
 from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo.mongo_client import MongoClient
-from scrapy.http import Headers
+from scrapy.http.headers import Headers
 from scrapy.responsetypes import responsetypes
 from scrapy.settings import Settings
+from scrapy.utils.python import to_unicode
 
 from scrapy_httpcache import TRequest, TResponse, TSpider
 from scrapy_httpcache.extensions.cache_storage import CacheStorage
@@ -120,7 +121,7 @@ class MongoCacheStorage(CacheStorage):
             "status": response.status,
             "url": response.url,
             "headers": self._convert_headers(response),
-            "body": self._convert_body(response),
+            "body": response.text,
         }
         key = self._request_key(request)
         self.collection.update_one(
@@ -151,11 +152,31 @@ class MongoCacheStorage(CacheStorage):
 
         return v["data"]
 
-    def _convert_body(self, response: TResponse) -> Union[str, bytes]:
-        return response.body
-
     def _convert_headers(self, response: TResponse):
-        return response.headers.to_unicode_dict()
+        encoding = response.headers.encoding
+        headers = response.headers.to_unicode_dict()
+
+        set_cookie = []
+        for cookie in [
+            to_unicode(i, encoding) for i in response.headers.getlist("set-cookie")
+        ]:
+            cookie_ = {}
+            for j in cookie.split(";"):
+                key, value = j.split("=", 1)
+                cookie_[key.strip()] = value.strip()
+            if "expires" in cookie_:
+                cookie_["expires"] = datetime.strptime(
+                    cookie_["expires"], "%a, %d %b %Y %H:%M:%S %Z"
+                )
+            set_cookie.append(cookie_)
+        headers["set-cookie"] = set_cookie
+
+        if "date" in headers:
+            headers["date"] = datetime.strptime(
+                headers["date"], "%a, %d %b %Y %H:%M:%S %Z"
+            )
+
+        return headers
 
 
 class MongoAsyncCacheStorage(CacheStorage):
