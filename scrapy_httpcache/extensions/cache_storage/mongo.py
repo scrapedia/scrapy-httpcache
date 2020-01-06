@@ -68,7 +68,26 @@ class MongoCacheStorage(CacheStorage):
         )
         self.collection.create_index([("key", ASCENDING)], unique=True)
 
-        logger.debug("Using MongoDB cache storage", extra={"spider": spider})
+        database: str = ""
+        if isinstance(self.settings["HTTPCACHE_MONGO_DATABASE"], str):
+            database = self.settings["HTTPCACHE_MONGO_DATABASE"]
+        elif isinstance(self.settings["HTTPCACHE_MONGO_DATABASE"], dict):
+            database = self.settings["HTTPCACHE_MONGO_DATABASE"]["name"]
+
+        collection: str = ""
+        if isinstance(self.settings["HTTPCACHE_MONGO_COLLECTION"], str):
+            collection = self.settings["HTTPCACHE_MONGO_COLLECTION"]
+        elif isinstance(self.settings["HTTPCACHE_MONGO_COLLECTION"], dict):
+            collection = self.settings["HTTPCACHE_MONGO_COLLECTION"]["name"]
+
+        logger.debug(
+            "Using MongoDB cache storage mongodb://%s:%s/%s/%s",
+            self.settings["HTTPCACHE_MONGO_MONGOCLIENT_HOST"],
+            self.settings["HTTPCACHE_MONGO_MONGOCLIENT_PORT"],
+            database,
+            collection,
+            extra={"spider": spider}
+        )
 
     def close_spider(self, spider: TSpider) -> None:
         """
