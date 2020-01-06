@@ -74,3 +74,18 @@ class CacheStorage(metaclass=ABCMeta):
         :rtype: str
         """
         return request_fingerprint(request)
+
+    def delete_response(
+        self, request: TRequest, response: TResponse, spider: TSpider, *args, **kwargs
+    ) -> None:
+        """
+
+        :param request:
+        :type request: TRequest
+        :param response:
+        :type response: TResponse
+        :param spider:
+        :type spider: TSpider
+        :return:
+        :rtype: None
+        """
